@@ -1,18 +1,28 @@
 Name:                network-info
-Version:             0.1
-Synopsis:            Get information about local network adapters such as name, IP address, MAC address
-Homepage:            http://github.com/jystic/network-info
-License:             BSD3
-License-file:        LICENSE
-Author:              Jacob Stanley
-Maintainer:          jacob@stanley.io
-Category:            Network
-Build-type:          Simple
-Cabal-version:       >=1.6
+version:             0.1
+synopsis:            Get information about local network adapters such as name, IP address, MAC address
+homepage:            http://github.com/jystic/network-info
+license:             BSD3
+license-file:        LICENSE
+author:              Jacob Stanley
+maintainer:          jacob@stanley.io
+category:            Network
+build-type:          Simple
+cabal-version:       >=1.8.0.4
+
+Flag test
+  description: Build test program
+  default:     False
 
 Library
   hs-source-dirs: src
   include-dirs: cbits
+
+  exposed-modules: Network.Info
+  
+  build-depends:
+    base == 4.*,
+    network == 2.2.*
 
   if os(linux)
     c-sources: cbits/network-linux.c
@@ -22,7 +32,14 @@ Library
     else
       buildable: False
 
-  exposed-modules: Network.Info
-  
-  build-depends:
-    base == 4.*
+Executable test-network-info
+  hs-source-dirs: test
+  main-is: Main.hs
+
+  if flag(test)
+    build-depends:
+      base == 4.*,
+      network == 2.2.*,
+      network-info
+  else
+    buildable: False
