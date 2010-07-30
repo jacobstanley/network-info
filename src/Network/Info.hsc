@@ -14,7 +14,6 @@ import Foreign.C.Types
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
-import Network.Socket
 import Text.Printf
 
 
@@ -23,10 +22,8 @@ import Text.Printf
 
 #include "network.h"
 
-type SocketFD = CInt
-
 foreign import ccall unsafe "c_get_network_interfaces"
-        c_get_network_interfaces :: SocketFD -> Ptr NetworkInterface -> CInt -> IO CInt
+        c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
 
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 
@@ -36,8 +33,8 @@ foreign import ccall unsafe "c_get_network_interfaces"
 
 data NetworkInterface = NetworkInterface
     { netName :: String
-    , netAddress :: IPv4
-    , netMask :: IPv4
+    , netIP :: IPv4
+    , netIP6 :: IPv6
     , netMAC :: MAC
     } deriving (Show)
 
@@ -45,33 +42,25 @@ instance Storable NetworkInterface where
     alignment _ = #alignment struct network_interface
     sizeOf _    = #size struct network_interface
     peek ptr    = do
-        name  <- peekCString $ (#ptr struct network_interface, name) ptr
-        inet  <- (#peek struct network_interface, address) ptr
-        mask  <- (#peek struct network_interface, netmask) ptr
-        mac   <- (#peek struct network_interface, mac_address) ptr
-        return $ NetworkInterface name inet mask mac
+        name <- peekCWString $ (#ptr struct network_interface, name) ptr
+        ip   <- (#peek struct network_interface, ip_address) ptr
+        ip6  <- (#peek struct network_interface, ip6_address) ptr
+        mac  <- (#peek struct network_interface, mac_address) ptr
+        return $ NetworkInterface name ip ip6 mac
 
 
 -- | Gets information about the network interfaces on the local computer
 getNetworkInterfaces :: IO [NetworkInterface]
-getNetworkInterfaces = withSocketFD $ \fd -> do
+getNetworkInterfaces =
     allocaArray 64 $ \ptr -> do
-    count <- c_get_network_interfaces fd ptr 64
+    count <- c_get_network_interfaces ptr 64
     peekArray (fromIntegral count) ptr
-
-
-withSocketFD :: (SocketFD -> IO a) -> IO a
-withSocketFD f = do
-    s <- socket AF_INET Datagram 0
-    res <- f (fdSocket s)
-    sClose s
-    return res
 
 
 -- IPv4 addresses
 ----------------------------------------------------------------------
 
-newtype IPv4 = IPv4 Word32
+data IPv4 = IPv4 {-# UNPACK #-} !Word32
     deriving (Eq, Ord, Bounded)
 
 instance Show IPv4 where
@@ -93,6 +82,50 @@ fromWord32 = IPv4
 showIPv4 :: IPv4 -> String
 showIPv4 (IPv4 ip) = concat . intersperse "." $ showOctets
     where showOctets = map (show . getWord8 ip) [0..3]
+          getWord8 :: Word32 -> Int -> Word8
+          getWord8 w32 n = fromIntegral $ w32 `shiftR` (n * 8) .&. 0xff
+
+
+-- IPv6 addresses
+----------------------------------------------------------------------
+
+data IPv6 = IPv6
+    {-# UNPACK #-} !Word32
+    {-# UNPACK #-} !Word32
+    {-# UNPACK #-} !Word32
+    {-# UNPACK #-} !Word32
+    deriving (Eq, Ord, Bounded)
+
+instance Show IPv6 where
+    show = showIPv6
+
+instance Storable IPv6 where
+    alignment _ = 1
+    sizeOf _    = 16
+    peek p      = do
+        let ptr = castPtr p
+        a <- peekElemOff ptr 0
+        b <- peekElemOff ptr 1
+        c <- peekElemOff ptr 2
+        d <- peekElemOff ptr 3
+        return $ IPv6 a b c d
+    poke p (IPv6 a b c d) = do
+        let ptr = castPtr p
+        pokeElemOff ptr 0 a
+        pokeElemOff ptr 1 b
+        pokeElemOff ptr 2 c
+        pokeElemOff ptr 3 d
+
+
+toWords :: IPv6 -> (Word32, Word32, Word32, Word32)
+toWords (IPv6 a b c d) = (a, b, c, d)
+
+fromWords :: (Word32, Word32, Word32, Word32) -> IPv6
+fromWords (a, b, c, d) = IPv6 a b c d
+
+showIPv6 :: IPv6 -> String
+showIPv6 (IPv6 a b c d) = concat . intersperse "." $ concatMap showOctets [a,b,c,d]
+    where showOctets x = map (show . getWord8 x) [0..3]
           getWord8 :: Word32 -> Int -> Word8
           getWord8 w32 n = fromIntegral $ w32 `shiftR` (n * 8) .&. 0xff
 
