@@ -6,7 +6,7 @@ module Network.Info (
     MAC,
 ) where
 
-import Data.Bits ((.&.), shiftR)
+import Data.Bits ((.&.), shiftR, shiftL)
 import Data.List (intersperse)
 import Data.Word
 import Foreign.C.String
@@ -14,9 +14,11 @@ import Foreign.C.Types
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
+import Numeric (showHex)
 import Text.Printf
 
 
+----------------------------------------------------------------------
 -- FFI
 ----------------------------------------------------------------------
 
@@ -28,6 +30,7 @@ foreign import ccall unsafe "c_get_network_interfaces"
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 
 
+----------------------------------------------------------------------
 -- Network interfaces
 ----------------------------------------------------------------------
 
@@ -57,10 +60,12 @@ getNetworkInterfaces =
     peekArray (fromIntegral count) ptr
 
 
+----------------------------------------------------------------------
 -- IPv4 addresses
 ----------------------------------------------------------------------
 
-data IPv4 = IPv4 {-# UNPACK #-} !Word32
+data IPv4 = IPv4
+    {-# UNPACK #-} !Word32
     deriving (Eq, Ord, Bounded)
 
 instance Show IPv4 where
@@ -73,19 +78,7 @@ instance Storable IPv4 where
     poke p (IPv4 ip) = poke (castPtr p) ip
 
 
-toWord32 :: IPv4 -> Word32
-toWord32 (IPv4 ip) = ip
-
-fromWord32 :: Word32 -> IPv4
-fromWord32 = IPv4
-
-showIPv4 :: IPv4 -> String
-showIPv4 (IPv4 ip) = concat . intersperse "." $ showOctets
-    where showOctets = map (show . getWord8 ip) [0..3]
-          getWord8 :: Word32 -> Int -> Word8
-          getWord8 w32 n = fromIntegral $ w32 `shiftR` (n * 8) .&. 0xff
-
-
+----------------------------------------------------------------------
 -- IPv6 addresses
 ----------------------------------------------------------------------
 
@@ -117,19 +110,7 @@ instance Storable IPv6 where
         pokeElemOff ptr 3 d
 
 
-toWords :: IPv6 -> (Word32, Word32, Word32, Word32)
-toWords (IPv6 a b c d) = (a, b, c, d)
-
-fromWords :: (Word32, Word32, Word32, Word32) -> IPv6
-fromWords (a, b, c, d) = IPv6 a b c d
-
-showIPv6 :: IPv6 -> String
-showIPv6 (IPv6 a b c d) = concat . intersperse "." $ concatMap showOctets [a,b,c,d]
-    where showOctets x = map (show . getWord8 x) [0..3]
-          getWord8 :: Word32 -> Int -> Word8
-          getWord8 w32 n = fromIntegral $ w32 `shiftR` (n * 8) .&. 0xff
-
-
+----------------------------------------------------------------------
 -- MAC addresses
 ----------------------------------------------------------------------
 
@@ -163,3 +144,32 @@ instance Storable MAC where
         pokeByteOff p 3 d
         pokeByteOff p 4 e
         pokeByteOff p 5 f
+
+
+----------------------------------------------------------------------
+-- Helper functions
+----------------------------------------------------------------------
+
+showIPv4 :: IPv4 -> String
+showIPv4 (IPv4 ip) = concat . intersperse "." $ showOctets
+  where
+    showOctets = map show $ word8s ip
+
+-- TODO: drop out consecutive zeros
+showIPv6 :: IPv6 -> String
+showIPv6 (IPv6 a b c d) = (concat . intersperse ":") groups
+  where
+    groups = map (flip showHex "")  $ concatMap (group . word8s) [a,b,c,d]
+
+word8s :: Word32 -> [Word8]
+word8s x = [ fromIntegral $ x
+           , fromIntegral $ x `shiftR` 8
+           , fromIntegral $ x `shiftR` 16
+           , fromIntegral $ x `shiftR` 24 ]
+
+group :: [Word8] -> [Word16]
+group = map2 $ \x y -> (fromIntegral x) `shiftL` 8 + (fromIntegral y)
+
+map2 :: (a -> a -> b) -> [a] -> [b]
+map2 _ [] = []
+map2 f (x:y:zs) = f x y : map2 f zs
