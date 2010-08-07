@@ -17,7 +17,6 @@ Flag test
 Library
   hs-source-dirs: src
   include-dirs: cbits
-  extra-libraries: iphlpapi
 
   exposed-modules: Network.Info
   
@@ -29,6 +28,7 @@ Library
   else
     if os(windows)
       c-sources: cbits/network-windows.c
+      extra-libraries: iphlpapi
     else
       buildable: False
 

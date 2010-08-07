@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -8,16 +10,7 @@
 #include <sys/types.h>
 
 #include "network.h"
-
-
-int min(int a, int b) {
-    return a < b ? a : b;
-}
-
-int szcopy(char *dst, char *src, size_t dst_size) {
-    strncpy(dst, src, dst_size - 1);
-    dst[dst_size - 1] = '\0';
-}
+#include "common.h"
 
 
 int c_get_network_interfaces(struct network_interface *ns, int max_ns) {
@@ -47,17 +40,12 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns) {
     count = min(max_ns, conf.ifc_len / sizeof(struct ifreq));
 
     for (i = 0; i < count; i++) {
-        szcopy(ns[i].name, req[i].ifr_name, NAME_SIZE);
-        szcopy(ns[i].inet, inet_ntoa(((struct sockaddr_in *)&req[i].ifr_addr)->sin_addr), IP_SIZE);
-
-        io = ioctl(sockfd, SIOCGIFBRDADDR, &req[i]);
-        if (io >= 0) {
-            szcopy(ns[i].bcast, inet_ntoa(((struct sockaddr_in *)&req[i].ifr_broadaddr)->sin_addr), IP_SIZE);
-        }
+        mbswszcopy(ns[i].name, req[i].ifr_name, NAME_SIZE);
+        ipv4copy(&ns[i].ip_address, &req[i].ifr_addr);
 
         io = ioctl(sockfd, SIOCGIFHWADDR, &req[i]);
         if (io >= 0) {
-            memcpy(ns[i].mac, req[i].ifr_hwaddr.sa_data, MAC_SIZE);
+            memcpy(&ns[i].mac_address, req[i].ifr_hwaddr.sa_data, MAC_SIZE);
         }
     }
 
