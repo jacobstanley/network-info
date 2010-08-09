@@ -17,6 +17,7 @@ Flag test
 Library
   hs-source-dirs: src
   include-dirs: cbits
+  cc-options: -Wall -Werror
 
   exposed-modules: Network.Info
   
@@ -25,7 +26,6 @@ Library
 
   if os(linux)
     c-sources: cbits/network-linux.c
-    cc-options: -Wall -Werror
   else
     if os(windows)
       c-sources: cbits/network-windows.c
