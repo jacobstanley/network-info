@@ -13,6 +13,11 @@ inline void ipv6copy(ipv6 *dst, struct sockaddr *addr)
     memcpy(dst, ((struct sockaddr_in6 *)addr)->sin6_addr.s6_addr, sizeof(ipv6));
 }
 
+inline int wcsempty(const wchar_t *str)
+{
+    return wcslen(str) == 0;
+}
+
 inline void wszcopy(wchar_t *dst, const wchar_t *src, size_t dst_size)
 {
     wcsncpy(dst, src, dst_size - 1);

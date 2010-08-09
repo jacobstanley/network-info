@@ -2,12 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
 
 #include <ifaddrs.h>
 #include <netdb.h>
@@ -16,14 +10,11 @@
 #include "network.h"
 #include "common.h"
 
-int maccopy(unsigned char *dst, struct sockaddr *addr)
+
+void maccopy(unsigned char *dst, struct sockaddr *addr)
 {
     /* TODO check that sll_halen is equal to 6 (MAC_SIZE) */
     memcpy(dst, ((struct sockaddr_ll *)addr)->sll_addr, MAC_SIZE);
-}
-
-int wcsempty(const wchar_t *str) {
-    return wcslen(str) == 0;
 }
 
 struct network_interface *add_interface(struct network_interface *ns, const wchar_t *name, int max_ns)
