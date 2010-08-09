@@ -9,46 +9,80 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 
+#include <ifaddrs.h>
+#include <netdb.h>
+#include <netpacket/packet.h>
+
 #include "network.h"
 #include "common.h"
 
+int maccopy(unsigned char *dst, struct sockaddr *addr)
+{
+    /* TODO check that sll_halen is equal to 6 (MAC_SIZE) */
+    memcpy(dst, ((struct sockaddr_ll *)addr)->sll_addr, MAC_SIZE);
+}
 
-int c_get_network_interfaces(struct network_interface *ns, int max_ns) {
-    int sockfd;
-    int io;
-    int i, count;
-	char buffer[1024];
-	struct ifconf conf;
-	struct ifreq *req, *req_end;
-    
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);   
-	if (sockfd < 0) {
-		perror("socket");
-		return 0;
-	}
+int wcsempty(const wchar_t *str) {
+    return wcslen(str) == 0;
+}
 
-	conf.ifc_len = sizeof(buffer);
-	conf.ifc_buf = buffer;
-    io = ioctl(sockfd, SIOCGIFCONF, &conf);
-	if (io < 0) {
-		perror("ioctl(SIOCGIFCONF)");
-        close(sockfd);
-		return 0;
-	}
+struct network_interface *add_interface(struct network_interface *ns, const wchar_t *name, int max_ns)
+{
+    int i;
+    for (i = 0; i < max_ns; i++) {
+        if (wcsempty(ns[i].name)) {
+            wszcopy(ns[i].name, name, NAME_SIZE);
+            return &ns[i];
+        } else if (wcscmp(ns[i].name, name) == 0) {
+            return &ns[i];
+        }
+    }
+    return NULL;
+}
 
-    req = conf.ifc_req;
-    count = min(max_ns, conf.ifc_len / sizeof(struct ifreq));
+int count_interfaces(struct network_interface *ns, int max_ns)
+{
+    int i;
+    for (i = 0; i < max_ns; i++) {
+        if (wcsempty(ns[i].name)) {
+            break;
+        }
+    }
+    return i;
+}
 
-    for (i = 0; i < count; i++) {
-        mbswszcopy(ns[i].name, req[i].ifr_name, NAME_SIZE);
-        ipv4copy(&ns[i].ip_address, &req[i].ifr_addr);
+int c_get_network_interfaces(struct network_interface *ns, int max_ns)
+{
+    struct network_interface *n;
+    struct ifaddrs *ifaddr, *ifa;
+    struct sockaddr *addr;
+    wchar_t name[NAME_SIZE];
+    int family, error;
+   
+    error = getifaddrs(&ifaddr);
+    if (error != 0) {
+        perror("getifaddrs");
+        return 0;
+    }
 
-        io = ioctl(sockfd, SIOCGIFHWADDR, &req[i]);
-        if (io >= 0) {
-            memcpy(&ns[i].mac_address, req[i].ifr_hwaddr.sa_data, MAC_SIZE);
+    memset(ns, 0, sizeof(struct network_interface) * max_ns);
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        mbswszcopy(name, ifa->ifa_name, NAME_SIZE);
+        addr = ifa->ifa_addr;
+        family = addr->sa_family;
+
+        n = add_interface(ns, name, max_ns);
+
+        if (family == AF_INET) {
+            ipv4copy(&n->ip_address, addr);
+        } else if (family == AF_INET6) {
+            ipv6copy(&n->ip6_address, addr);
+        } else if (family == AF_PACKET) {
+            maccopy(n->mac_address, addr);
         }
     }
 
-    close(sockfd);
-    return count;
+    freeifaddrs(ifaddr);
+    return count_interfaces(ns, max_ns);
 }
