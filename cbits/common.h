@@ -1,8 +1,3 @@
-inline int min(int a, int b)
-{
-    return a < b ? a : b;
-}
-
 inline void ipv4copy(ipv4 *dst, struct sockaddr *addr)
 {
     *dst = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
