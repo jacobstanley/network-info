@@ -10,16 +10,19 @@
 #include "common.h"
 
 
-int get_adapters_addresses(IP_ADAPTER_ADDRESSES *adapters, ULONG *size) {
+int get_adapters_addresses(IP_ADAPTER_ADDRESSES *adapters, ULONG *size)
+{
     return GetAdaptersAddresses(AF_UNSPEC, 0, 0, adapters, size);
 }
 
-int c_get_network_interfaces(struct network_interface *ns, int max_ns) {
+int c_get_network_interfaces(struct network_interface *ns, int max_ns)
+{
+    struct sockaddr *addr;
     IP_ADAPTER_ADDRESSES *adapters, *adapter;
     IP_ADAPTER_UNICAST_ADDRESS *unicast;
     ULONG buffer_size;
     DWORD error;
-    int i = 0;
+    int family, i;
 
     /* make an initial call to get the necessary
      * size into the buffer_size variable */
@@ -33,6 +36,7 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns) {
 
     adapters = malloc(buffer_size);
     error = get_adapters_addresses(adapters, &buffer_size);
+    i = 0;
 
     if (error == NO_ERROR) {
         adapter = adapters;
@@ -42,11 +46,12 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns) {
             memcpy(ns[i].mac_address, adapter->PhysicalAddress, MAC_SIZE);
 
             for (unicast = adapter->FirstUnicastAddress; unicast; unicast = unicast->Next) {
-                struct sockaddr *addr = unicast->Address.lpSockaddr;
+                addr = unicast->Address.lpSockaddr;
+                family = addr->sa_family;
 
-                if (addr->sa_family == AF_INET) {
+                if (family == AF_INET) {
                     ipv4copy(&ns[i].ip_address, addr);
-                } else if (addr->sa_family == AF_INET6) {
+                } else if (family == AF_INET6) {
                     ipv6copy(&ns[i].ip6_address, addr);
                 }
             }
