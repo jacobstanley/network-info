@@ -17,6 +17,13 @@ category:            Network
 build-type:          Simple
 cabal-version:       >=1.8.0.4
 
+extra-source-files:
+  cbits/common.h,
+  cbits/network.h,
+  README.mkd,
+  run-tests.sh,
+  run-tests.bat
+
 source-repository head
   type:     git
   location: git://github.com/jystic/network-info.git
