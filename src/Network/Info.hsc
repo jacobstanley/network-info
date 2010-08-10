@@ -3,9 +3,9 @@
 module Network.Info (
     getNetworkInterfaces,
     NetworkInterface (..),
-    IPv4,
-    IPv6,
-    MAC,
+    IPv4 (..),
+    IPv6 (..),
+    MAC (..),
 ) where
 
 import Data.Bits ((.&.), shiftR, shiftL)
