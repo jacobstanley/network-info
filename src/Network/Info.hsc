@@ -37,10 +37,10 @@ foreign import ccall unsafe "c_get_network_interfaces"
 ----------------------------------------------------------------------
 
 data NetworkInterface = NetworkInterface
-    { netName :: String
-    , netIP :: IPv4
-    , netIP6 :: IPv6
-    , netMAC :: MAC
+    { name :: String
+    , ipv4 :: IPv4
+    , ipv6 :: IPv6
+    , mac  :: MAC
     } deriving (Show)
 
 instance Storable NetworkInterface where
@@ -48,10 +48,10 @@ instance Storable NetworkInterface where
     sizeOf _    = #size struct network_interface
     peek ptr    = do
         name <- peekCWString $ (#ptr struct network_interface, name) ptr
-        ip   <- (#peek struct network_interface, ip_address) ptr
-        ip6  <- (#peek struct network_interface, ip6_address) ptr
+        ipv4 <- (#peek struct network_interface, ip_address) ptr
+        ipv6 <- (#peek struct network_interface, ip6_address) ptr
         mac  <- (#peek struct network_interface, mac_address) ptr
-        return $ NetworkInterface name ip ip6 mac
+        return $ NetworkInterface name ipv4 ipv6 mac
 
 
 -- | Gets information about the network interfaces on the local computer
