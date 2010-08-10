@@ -1,6 +1,10 @@
 Name:                network-info
 version:             0.1
-synopsis:            Get information about local network adapters such as name, IP address, MAC address
+synopsis:            Access the local computer's basic network configuration
+description:         This library provides simple read-only access to the local computer's
+                     networking configuration. It is currently capable of getting a list of
+                     all the network interfaces and their respective IPv4, IPv6 and MAC
+                     addresses.
 homepage:            http://github.com/jystic/network-info
 license:             BSD3
 license-file:        LICENSE

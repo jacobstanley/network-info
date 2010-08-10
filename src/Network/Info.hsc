@@ -36,11 +36,13 @@ foreign import ccall unsafe "c_get_network_interfaces"
 -- Network interfaces
 ----------------------------------------------------------------------
 
+-- | Describes the basic configuration of a network interface. /This/
+--   /definition is currently limited to just one address per family./
 data NetworkInterface = NetworkInterface
-    { name :: String
-    , ipv4 :: IPv4
-    , ipv6 :: IPv6
-    , mac  :: MAC
+    { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
+    , ipv4 :: IPv4   -- ^ IPv4 address
+    , ipv6 :: IPv6   -- ^ IPv6 address
+    , mac  :: MAC    -- ^ MAC address
     } deriving (Show)
 
 instance Storable NetworkInterface where
@@ -54,7 +56,8 @@ instance Storable NetworkInterface where
         return $ NetworkInterface name ipv4 ipv6 mac
 
 
--- | Gets information about the network interfaces on the local computer
+-- | Gets the address information for each of the network interfaces on
+--   the local computer.
 getNetworkInterfaces :: IO [NetworkInterface]
 getNetworkInterfaces =
     allocaArray 64 $ \ptr -> do
@@ -66,6 +69,7 @@ getNetworkInterfaces =
 -- IPv4 addresses
 ----------------------------------------------------------------------
 
+-- | Represents an IPv4 address (e.g. @172.23.21.1@, @127.0.0.1@)
 data IPv4 = IPv4
     {-# UNPACK #-} !Word32
     deriving (Eq, Ord, Bounded)
@@ -87,6 +91,7 @@ instance Storable IPv4 where
 -- IPv6 addresses
 ----------------------------------------------------------------------
 
+-- | Represents an IPv6 address (e.g. @2001:db8:85a3::8a2e:370:7334@, @::1@)
 data IPv6 = IPv6
     {-# UNPACK #-} !Word32
     {-# UNPACK #-} !Word32
@@ -94,6 +99,8 @@ data IPv6 = IPv6
     {-# UNPACK #-} !Word32
     deriving (Eq, Ord, Bounded)
 
+-- | Not yet capable of collapsing groups of zeros, will still
+--   generate valid addresses however.
 instance Show IPv6 where
     show = showIPv6
 
@@ -119,6 +126,7 @@ instance Storable IPv6 where
 -- MAC addresses
 ----------------------------------------------------------------------
 
+-- | Represents a MAC address (e.g. @01:23:45:67:89:ab@)
 data MAC = MAC
     {-# UNPACK #-} !Word8
     {-# UNPACK #-} !Word8
