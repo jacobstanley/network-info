@@ -3,6 +3,8 @@
 module Network.Info (
     getNetworkInterfaces,
     NetworkInterface (..),
+    IPv4,
+    IPv6,
     MAC,
 ) where
 
