@@ -74,8 +74,11 @@ instance Show IPv4 where
 instance Storable IPv4 where
     alignment _ = 1
     sizeOf _    = 4
-    peek p      = peek (castPtr p) >>= \ip -> return (IPv4 ip)
-    poke p (IPv4 ip) = poke (castPtr p) ip
+    peek p      = do
+        ip <- peek (castPtr p)
+        return (IPv4 ip)
+    poke p (IPv4 ip) =
+        poke (castPtr p) ip
 
 
 ----------------------------------------------------------------------
