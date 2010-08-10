@@ -5,6 +5,9 @@ description:         This library provides simple read-only access to the local 
                      networking configuration. It is currently capable of getting a list of
                      all the network interfaces and their respective IPv4, IPv6 and MAC
                      addresses.
+                     .
+                     The executable 'test-network-info' will only be built if the flag 'test'
+                     has been set.
 homepage:            http://github.com/jystic/network-info
 license:             BSD3
 license-file:        LICENSE
