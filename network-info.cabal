@@ -17,6 +17,10 @@ category:            Network
 build-type:          Simple
 cabal-version:       >=1.8.0.4
 
+source-repository head
+  type:     git
+  location: git://github.com/jystic/network-info.git
+
 Flag test
   description: Build test program
   default:     False
