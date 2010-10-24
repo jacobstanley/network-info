@@ -5,7 +5,13 @@
 
 #include <ifaddrs.h>
 #include <netdb.h>
-#include <netpacket/packet.h>
+
+#ifdef __linux__
+#   include <netpacket/packet.h>
+#else
+#   include <net/if_dl.h>
+#   define AF_PACKET AF_LINK
+#endif
 
 #include "network.h"
 #include "common.h"
@@ -13,8 +19,14 @@
 
 void maccopy(unsigned char *dst, struct sockaddr *addr)
 {
+#ifdef __linux__
     /* TODO check that sll_halen is equal to 6 (MAC_SIZE) */
     memcpy(dst, ((struct sockaddr_ll *)addr)->sll_addr, MAC_SIZE);
+#else
+    /* TODO check that sdl_alen is equal to 6 (MAC_SIZE) */
+    struct sockaddr_dl *sdl = (struct sockaddr_dl *)addr;
+    memcpy(dst, sdl->sdl_data + sdl-> sdl_nlen, MAC_SIZE);
+#endif
 }
 
 struct network_interface *add_interface(struct network_interface *ns, const wchar_t *name, int max_ns)
