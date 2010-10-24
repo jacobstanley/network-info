@@ -9,7 +9,7 @@ addresses.
 Compatibility
 --------------
 
-network-info has been tested and is known to work on Ubuntu 10.04, Mac
+network-info has been tested and is known to work on Ubuntu 10.10, Mac
 OS X 10.6.4 and Windows XP. It probably works on other flavours of
 Linux, OS X and Windows as well. I haven't tried to get it working on
 BSD yet, but it should be quite similar if not the same as the code for
