@@ -43,7 +43,7 @@ Library
     base == 4.*
 
   if os(linux)
-    c-sources: cbits/network-linux.c
+    c-sources: cbits/network-unix.c
   else
     if os(windows)
       c-sources: cbits/network-windows.c
