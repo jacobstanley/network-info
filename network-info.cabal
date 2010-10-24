@@ -1,36 +1,31 @@
-Name:                network-info
-version:             0.1.0.1
-synopsis:            Access the local computer's basic network configuration
-description:         This library provides simple read-only access to the local computer's
-                     networking configuration. It is currently capable of getting a list of
-                     all the network interfaces and their respective IPv4, IPv6 and MAC
-                     addresses.
-                     .
-                     The executable 'test-network-info' will only be built if the flag 'test'
-                     has been set.
-homepage:            http://github.com/jystic/network-info
-license:             BSD3
-license-file:        LICENSE
-author:              Jacob Stanley
-maintainer:          jacob@stanley.io
-category:            Network
-build-type:          Simple
-cabal-version:       >=1.8.0.4
+name:           network-info
+version:        0.1.0.1
+synopsis:       Access the local computer's basic network configuration
+description:    This library provides simple read-only access to the local computer's
+                networking configuration. It is currently capable of getting a list of
+                all the network interfaces and their respective IPv4, IPv6 and MAC
+                addresses.
+homepage:       http://github.com/jystic/network-info
+license:        BSD3
+license-file:   LICENSE
+author:         Jacob Stanley
+maintainer:     jacob@stanley.io
+category:       Network
+build-type:     Simple
+cabal-version:  >= 1.6
 
 extra-source-files:
   cbits/common.h,
   cbits/network.h,
-  README.mkd,
-  run-tests.sh,
-  run-tests.bat
+  test/src/Main.hs,
+  test/network-info-test.cabal,
+  test/run-tests.bat,
+  test/run-tests.sh,
+  README.mkd
 
 source-repository head
   type:     git
   location: git://github.com/jystic/network-info.git
-
-Flag test
-  description: Build test program
-  default:     False
 
 Library
   hs-source-dirs: src
@@ -50,14 +45,3 @@ Library
       extra-libraries: iphlpapi
     else
       buildable: False
-
-Executable test-network-info
-  hs-source-dirs: test
-  main-is: Main.hs
-
-  if flag(test)
-    build-depends:
-      base == 4.*,
-      network-info
-  else
-    buildable: False

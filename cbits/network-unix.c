@@ -25,7 +25,7 @@ void maccopy(unsigned char *dst, struct sockaddr *addr)
 #else
     /* TODO check that sdl_alen is equal to 6 (MAC_SIZE) */
     struct sockaddr_dl *sdl = (struct sockaddr_dl *)addr;
-    memcpy(dst, sdl->sdl_data + sdl-> sdl_nlen, MAC_SIZE);
+    memcpy(dst, sdl->sdl_data + sdl->sdl_nlen, MAC_SIZE);
 #endif
 }
 
