@@ -1,2 +1,2 @@
 @echo off
-cabal configure && cabal build && .\dist\build\test-network-info\test-network-info.exe
+cabal configure && cabal build && .\dist\build\network-info-test\network-info-test.exe
