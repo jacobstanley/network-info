@@ -61,7 +61,7 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
     struct sockaddr *addr;
     wchar_t name[NAME_SIZE];
     int family, error;
-   
+
     error = getifaddrs(&ifaddr);
     if (error != 0) {
         perror("getifaddrs");
@@ -71,12 +71,19 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
     memset(ns, 0, sizeof(struct network_interface) * max_ns);
 
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        mbswszcopy(name, ifa->ifa_name, NAME_SIZE);
+        /* check we actually have an address in this item */
         addr = ifa->ifa_addr;
-        family = addr->sa_family;
+        if (addr == NULL)
+            continue;
 
+        /* convert the interface name to wide characters */
+        mbswszcopy(name, ifa->ifa_name, NAME_SIZE);
+
+        /* lookup or add a new interface with the given name */
         n = add_interface(ns, name, max_ns);
 
+        /* extract the address from this item */
+        family = addr->sa_family;
         if (family == AF_INET) {
             ipv4copy(&n->ip_address, addr);
         } else if (family == AF_INET6) {
