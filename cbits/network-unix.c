@@ -64,6 +64,9 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
 
     error = getifaddrs(&ifaddr);
     if (error != 0) {
+        /* TODO printing the error to stderr is not a very nice thing for
+         * TODO a library to do, but i've never seen this happen and its
+         * TODO probably better than failing silently. */
         perror("getifaddrs");
         return 0;
     }
