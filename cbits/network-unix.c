@@ -3,14 +3,21 @@
 #include <string.h>
 #include <wchar.h>
 
+#include <sys/types.h>
 #include <ifaddrs.h>
 #include <netdb.h>
 
 #ifdef __linux__
 #   include <netpacket/packet.h>
 #else
+#   include <sys/socket.h>
+#   include <net/if.h>
 #   include <net/if_dl.h>
 #   define AF_PACKET AF_LINK
+#endif
+
+#ifdef __FreeBSD__
+#   include <net/pfvar.h>
 #endif
 
 #include "network.h"
