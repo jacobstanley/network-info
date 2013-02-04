@@ -1,13 +1,16 @@
+#ifdef OS_WINDOWS
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
+#endif
+
 #define NAME_SIZE (128+4)
 #define MAC_SIZE 6
 
-typedef long ipv4;
-typedef long ipv6[4];
-
 struct network_interface {
     wchar_t name[NAME_SIZE];
-    ipv4 ip_address;
-    ipv6 ip6_address;
+    struct sockaddr_in ip_address;
+    struct sockaddr_in6 ip6_address;
     unsigned char mac_address[MAC_SIZE];
 };
 

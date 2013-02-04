@@ -3,8 +3,6 @@
 module Network.Info (
     getNetworkInterfaces,
     NetworkInterface (..),
-    IPv4 (..),
-    IPv6 (..),
     MAC (..),
 ) where
 
@@ -18,6 +16,8 @@ import Foreign.Ptr
 import Foreign.Storable
 import Numeric (showHex)
 import Text.Printf
+import Network.Socket
+import Network.Socket.Internal
 
 
 ----------------------------------------------------------------------
@@ -40,8 +40,8 @@ foreign import ccall unsafe "c_get_network_interfaces"
 --   /definition is currently limited to just one address per family./
 data NetworkInterface = NetworkInterface
     { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
-    , ipv4 :: IPv4   -- ^ IPv4 address
-    , ipv6 :: IPv6   -- ^ IPv6 address
+    , ipv4 :: SockAddr   -- ^ IPv4 address
+    , ipv6 :: SockAddr   -- ^ IPv6 address
     , mac  :: MAC    -- ^ MAC address
     } deriving (Show)
 
@@ -50,8 +50,10 @@ instance Storable NetworkInterface where
     sizeOf _    = #size struct network_interface
     peek ptr    = do
         name <- peekCWString $ (#ptr struct network_interface, name) ptr
-        ipv4 <- (#peek struct network_interface, ip_address) ptr
-        ipv6 <- (#peek struct network_interface, ip6_address) ptr
+        let ipv4ptr = (#ptr struct network_interface, ip_address) ptr
+        ipv4 <- peekSockAddr ipv4ptr
+        let ipv6ptr = (#ptr struct network_interface, ip6_address) ptr
+        ipv6 <- peekSockAddr ipv6ptr
         mac  <- (#peek struct network_interface, mac_address) ptr
         return $ NetworkInterface name ipv4 ipv6 mac
 
@@ -63,64 +65,6 @@ getNetworkInterfaces =
     allocaArray 64 $ \ptr -> do
     count <- c_get_network_interfaces ptr 64
     peekArray (fromIntegral count) ptr
-
-
-----------------------------------------------------------------------
--- IPv4 addresses
-----------------------------------------------------------------------
-
--- | Represents an IPv4 address (e.g. @172.23.21.1@, @127.0.0.1@)
-data IPv4 = IPv4
-    {-# UNPACK #-} !Word32
-    deriving (Eq, Ord, Bounded)
-
-instance Show IPv4 where
-    show = showIPv4
-
-instance Storable IPv4 where
-    alignment _ = 1
-    sizeOf _    = 4
-    peek p      = do
-        ip <- peek (castPtr p)
-        return (IPv4 ip)
-    poke p (IPv4 ip) =
-        poke (castPtr p) ip
-
-
-----------------------------------------------------------------------
--- IPv6 addresses
-----------------------------------------------------------------------
-
--- | Represents an IPv6 address (e.g. @2001:db8:85a3::8a2e:370:7334@, @::1@)
-data IPv6 = IPv6
-    {-# UNPACK #-} !Word32
-    {-# UNPACK #-} !Word32
-    {-# UNPACK #-} !Word32
-    {-# UNPACK #-} !Word32
-    deriving (Eq, Ord, Bounded)
-
--- | Not yet capable of collapsing groups of zeros, will still
---   generate valid addresses however.
-instance Show IPv6 where
-    show = showIPv6
-
-instance Storable IPv6 where
-    alignment _ = 1
-    sizeOf _    = 16
-    peek p      = do
-        let ptr = castPtr p
-        a <- peekElemOff ptr 0
-        b <- peekElemOff ptr 1
-        c <- peekElemOff ptr 2
-        d <- peekElemOff ptr 3
-        return $ IPv6 a b c d
-    poke p (IPv6 a b c d) = do
-        let ptr = castPtr p
-        pokeElemOff ptr 0 a
-        pokeElemOff ptr 1 b
-        pokeElemOff ptr 2 c
-        pokeElemOff ptr 3 d
-
 
 ----------------------------------------------------------------------
 -- MAC addresses
@@ -157,32 +101,3 @@ instance Storable MAC where
         pokeByteOff p 3 d
         pokeByteOff p 4 e
         pokeByteOff p 5 f
-
-
-----------------------------------------------------------------------
--- Helper functions
-----------------------------------------------------------------------
-
-showIPv4 :: IPv4 -> String
-showIPv4 (IPv4 ip) = concat . intersperse "." $ showOctets
-  where
-    showOctets = map show $ word8s ip
-
--- TODO: drop out consecutive zeros
-showIPv6 :: IPv6 -> String
-showIPv6 (IPv6 a b c d) = (concat . intersperse ":") groups
-  where
-    groups = map (flip showHex "")  $ concatMap (group . word8s) [a,b,c,d]
-
-word8s :: Word32 -> [Word8]
-word8s x = [ fromIntegral $ x
-           , fromIntegral $ x `shiftR` 8
-           , fromIntegral $ x `shiftR` 16
-           , fromIntegral $ x `shiftR` 24 ]
-
-group :: [Word8] -> [Word16]
-group = map2 $ \x y -> (fromIntegral x) `shiftL` 8 + (fromIntegral y)
-
-map2 :: (a -> a -> b) -> [a] -> [b]
-map2 _ [] = []
-map2 f (x:y:zs) = f x y : map2 f zs

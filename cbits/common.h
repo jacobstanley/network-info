@@ -1,11 +1,11 @@
-inline void ipv4copy(ipv4 *dst, struct sockaddr *addr)
+inline void ipv4copy(struct sockaddr_in *dst, struct sockaddr *addr)
 {
-    *dst = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
+    memcpy(dst, addr, sizeof(struct sockaddr_in));
 }
 
-inline void ipv6copy(ipv6 *dst, struct sockaddr *addr)
+inline void ipv6copy(struct sockaddr_in6 *dst, struct sockaddr *addr)
 {
-    memcpy(dst, ((struct sockaddr_in6 *)addr)->sin6_addr.s6_addr, sizeof(ipv6));
+  memcpy(dst, addr, sizeof(struct sockaddr_in6));
 }
 
 inline int wcsempty(const wchar_t *str)

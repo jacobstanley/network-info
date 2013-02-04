@@ -44,9 +44,11 @@ Library
 
   build-depends:
     base == 4.*
+    , network >= 2.4
 
   if os(windows)
     c-sources: cbits/network-windows.c
     extra-libraries: iphlpapi
+    cpp-options: -DOS_WINDOWS
   else
     c-sources: cbits/network-unix.c
