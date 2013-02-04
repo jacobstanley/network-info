@@ -9,6 +9,7 @@
 
 #include "network.h"
 #include "common.h"
+#include "list.h"
 
 
 int get_adapters_addresses(IP_ADAPTER_ADDRESSES *adapters, ULONG *size)
@@ -49,16 +50,13 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
             for (unicast = adapter->FirstUnicastAddress; unicast; unicast = unicast->Next) {
                 addr = unicast->Address.lpSockaddr;
                 family = addr->sa_family;
-
-                if (family == AF_INET) {
-                    ipv4copy(&ns[i].ip_address, addr);
-                } else if (family == AF_INET6) {
-                    ipv6copy(&ns[i].ip6_address, addr);
+                if (family == AF_INET || family == AF_INET6 ) {
+                    prepend_address(&(ns[i].addresses), addr);
                 }
-            }
 
             i++;
             adapter = adapter->Next;
+            }
         }
     }
 

@@ -22,6 +22,7 @@
 
 #include "network.h"
 #include "common.h"
+#include "list.h"
 
 
 void maccopy(unsigned char *dst, struct sockaddr *addr)
@@ -42,6 +43,7 @@ struct network_interface *add_interface(struct network_interface *ns, const wcha
     for (i = 0; i < max_ns; i++) {
         if (wcsempty(ns[i].name)) {
             wszcopy(ns[i].name, name, NAME_SIZE);
+            ns[i].addresses = NULL;
             return &ns[i];
         } else if (wcscmp(ns[i].name, name) == 0) {
             return &ns[i];
@@ -95,14 +97,13 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
         /* extract the address from this item */
         family = addr->sa_family;
         if (family == AF_INET) {
-            ipv4copy(&n->ip_address, addr);
+            prepend_address(&(n->addresses), addr);
         } else if (family == AF_INET6) {
-            ipv6copy(&n->ip6_address, addr);
+            prepend_address(&(n->addresses), addr);
         } else if (family == AF_PACKET) {
             maccopy(n->mac_address, addr);
         }
     }
-
     freeifaddrs(ifaddr);
     return count_interfaces(ns, max_ns);
 }
