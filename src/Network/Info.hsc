@@ -25,9 +25,13 @@ import Network.Socket.Internal
 ----------------------------------------------------------------------
 
 #include "network.h"
+#include "list.h"
 
 foreign import ccall unsafe "c_get_network_interfaces"
         c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
+
+foreign import ccall unsafe "list_free"
+  listFree :: Ptr () -> IO ()
 
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 
@@ -40,8 +44,7 @@ foreign import ccall unsafe "c_get_network_interfaces"
 --   /definition is currently limited to just one address per family./
 data NetworkInterface = NetworkInterface
     { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
-    , ipv4 :: SockAddr   -- ^ IPv4 address
-    , ipv6 :: SockAddr   -- ^ IPv6 address
+    , addresses :: [SockAddr]
     , mac  :: MAC    -- ^ MAC address
     } deriving (Show)
 
@@ -50,12 +53,20 @@ instance Storable NetworkInterface where
     sizeOf _    = #size struct network_interface
     peek ptr    = do
         name <- peekCWString $ (#ptr struct network_interface, name) ptr
-        let ipv4ptr = (#ptr struct network_interface, ip_address) ptr
-        ipv4 <- peekSockAddr ipv4ptr
-        let ipv6ptr = (#ptr struct network_interface, ip6_address) ptr
-        ipv6 <- peekSockAddr ipv6ptr
+        addrListPtr <- (#peek struct network_interface, addresses) ptr
+        addrs <- crawlAddrList addrListPtr
         mac  <- (#peek struct network_interface, mac_address) ptr
-        return $ NetworkInterface name ipv4 ipv6 mac
+        listFree addrListPtr
+        return $ NetworkInterface name addrs mac
+
+crawlAddrList :: Ptr () -> IO [SockAddr]
+crawlAddrList ptr | ptr == nullPtr = return []
+                  | otherwise = do
+    addr <- peekSockAddr =<< (#peek struct addr_list, payload) ptr
+    next <- (#peek struct addr_list, next) ptr
+    (addr :) `fmap` (crawlAddrList next)
+
+
 
 
 -- | Gets the address information for each of the network interfaces on

@@ -1,3 +1,7 @@
+#ifndef _COMMON_H
+#define _COMMON_H
+#include "string.h"
+
 inline void ipv4copy(struct sockaddr_in *dst, struct sockaddr *addr)
 {
     memcpy(dst, addr, sizeof(struct sockaddr_in));
@@ -24,3 +28,5 @@ inline void mbswszcopy(wchar_t *dst, const char *src, size_t dst_size)
     mbstowcs(dst, src, dst_size - 1);
     dst[dst_size - 1] = '\0';
 }
+
+#endif

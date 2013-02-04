@@ -8,6 +8,5 @@ main = do
 
 showInterface :: NetworkInterface -> String
 showInterface n = name n ++ "\n"
-               ++ "IPv4 Address: " ++ show (ipv4 n) ++ "\n"
-               ++ "IPv6 Address: " ++ show (ipv6 n) ++ "\n"
+               ++ "Addresses: " ++ show (addresses n) ++ "\n"
                ++ "MAC Address:  " ++ show (mac n) ++ "\n"

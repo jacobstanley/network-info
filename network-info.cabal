@@ -1,5 +1,5 @@
 name:           network-info
-version:        0.2.0.3
+version:        0.3.0.0
 synopsis:       Access the local computer's basic network configuration
 
 description:    This library provides simple read-only access to the
@@ -25,6 +25,7 @@ cabal-version:  >= 1.6
 extra-source-files:
   cbits/common.h,
   cbits/network.h,
+  cbits/list.h,
   test/src/Main.hs,
   test/network-info-test.cabal,
   test/run-tests.bat,
@@ -45,10 +46,10 @@ Library
   build-depends:
     base == 4.*
     , network >= 2.4
-
+  c-sources: cbits/list.c
   if os(windows)
     c-sources: cbits/network-windows.c
     extra-libraries: iphlpapi
-    cpp-options: -DOS_WINDOWS
+    cc-options: -DOS_WINDOWS
   else
     c-sources: cbits/network-unix.c
