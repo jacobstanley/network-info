@@ -53,10 +53,10 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
                 if (family == AF_INET || family == AF_INET6 ) {
                     prepend_address(&(ns[i].addresses), addr);
                 }
+            }
 
             i++;
             adapter = adapter->Next;
-            }
         }
     }
 
