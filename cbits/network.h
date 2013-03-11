@@ -1,7 +1,7 @@
 #ifndef _NETWORK_h
 #define _NETWORK_h
 
-#ifdef OS_WINDOWS
+#ifdef mingw32_HOST_OS
 #include <winsock2.h>
 #else
 #include <netinet/in.h>

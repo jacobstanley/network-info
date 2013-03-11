@@ -34,22 +34,22 @@ extra-source-files:
 
 source-repository head
   type:     git
-  location: git://github.com/jystic/network-info.git
+  location: http://github.com/jystic/network-info.git
 
 Library
   hs-source-dirs: src
-  include-dirs: cbits
-  cc-options: -Wall -Werror
-
   exposed-modules: Network.Info
 
   build-depends:
-    base == 4.*
+      base == 4.*
     , network >= 2.4
+
+  include-dirs: cbits
   c-sources: cbits/list.c
+  cc-options: -Wall -Werror
+
   if os(windows)
     c-sources: cbits/network-windows.c
     extra-libraries: iphlpapi
-    cc-options: -DOS_WINDOWS
   else
     c-sources: cbits/network-unix.c

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef OS_WINDOWS
+#ifdef mingw32_HOST_OS
 #include <ws2tcpip.h>
 #endif
 
