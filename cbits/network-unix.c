@@ -25,7 +25,7 @@
 #include "list.h"
 
 
-void maccopy(unsigned char *dst, struct sockaddr *addr)
+static void maccopy(unsigned char *dst, struct sockaddr *addr)
 {
 #ifdef __linux__
     /* TODO check that sll_halen is equal to 6 (MAC_SIZE) */
@@ -37,7 +37,7 @@ void maccopy(unsigned char *dst, struct sockaddr *addr)
 #endif
 }
 
-struct network_interface *add_interface(struct network_interface *ns, const wchar_t *name, int max_ns)
+static struct network_interface *add_interface(struct network_interface *ns, const wchar_t *name, int max_ns)
 {
     int i;
     for (i = 0; i < max_ns; i++) {
@@ -52,7 +52,7 @@ struct network_interface *add_interface(struct network_interface *ns, const wcha
     return NULL;
 }
 
-int count_interfaces(struct network_interface *ns, int max_ns)
+static int count_interfaces(struct network_interface *ns, int max_ns)
 {
     int i;
     for (i = 0; i < max_ns; i++) {
@@ -63,13 +63,13 @@ int count_interfaces(struct network_interface *ns, int max_ns)
     return i;
 }
 
-int c_get_network_interfaces(struct network_interface *ns, int max_ns)
+int networkinfo_get_interfaces(struct network_interface *ns, int max_ns)
 {
     struct network_interface *n;
     struct ifaddrs *ifaddr, *ifa;
     struct sockaddr *addr;
     wchar_t name[NAME_SIZE];
-    int family, error;
+    int error;
 
     error = getifaddrs(&ifaddr);
     if (error != 0) {
@@ -95,15 +95,13 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
         n = add_interface(ns, name, max_ns);
 
         /* extract the address from this item */
-        family = addr->sa_family;
-        if (family == AF_INET) {
-            prepend_address(&(n->addresses), addr);
-        } else if (family == AF_INET6) {
-            prepend_address(&(n->addresses), addr);
-        } else if (family == AF_PACKET) {
+        if (addr->sa_family == AF_PACKET) {
             maccopy(n->mac_address, addr);
+        } else {
+            sockaddr_prepend(&(n->addresses), addr);
         }
     }
+
     freeifaddrs(ifaddr);
     return count_interfaces(ns, max_ns);
 }

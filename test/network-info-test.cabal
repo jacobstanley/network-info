@@ -4,10 +4,20 @@ build-type:     Simple
 cabal-version:  >= 1.6
 
 Executable network-info-test
-  cc-options: -Wall -Werror
-  hs-source-dirs: src
   main-is: Main.hs
+  hs-source-dirs: ../src src
+  other-modules: Network.Info
+
   build-depends:
-      base == 4.*
-    , network
-    , network-info
+      base    == 4.*
+    , network >= 2.4
+
+  include-dirs: ../cbits
+  cc-options: -Wall
+
+  if os(windows)
+    cc-options: -Dmingw32_HOST_OS
+    c-sources: ../cbits/network-windows.c
+    extra-libraries: iphlpapi
+  else
+    c-sources: ../cbits/network-unix.c

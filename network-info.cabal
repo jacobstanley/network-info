@@ -23,14 +23,14 @@ build-type:     Simple
 cabal-version:  >= 1.6
 
 extra-source-files:
-  cbits/common.h,
-  cbits/network.h,
-  cbits/list.h,
-  test/src/Main.hs,
-  test/network-info-test.cabal,
-  test/run-tests.bat,
-  test/run-tests.sh,
-  README.mkd
+    cbits/common.h
+  , cbits/network.h
+  , cbits/list.h
+  , test/src/Main.hs
+  , test/network-info-test.cabal
+  , test/run-tests.bat
+  , test/run-tests.sh
+  , README.mkd
 
 source-repository head
   type:     git
@@ -41,14 +41,14 @@ Library
   exposed-modules: Network.Info
 
   build-depends:
-      base == 4.*
+      base    == 4.*
     , network >= 2.4
 
   include-dirs: cbits
-  c-sources: cbits/list.c
   cc-options: -Wall -Werror
 
   if os(windows)
+    cc-options: -Dmingw32_HOST_OS
     c-sources: cbits/network-windows.c
     extra-libraries: iphlpapi
   else

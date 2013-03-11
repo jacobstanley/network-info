@@ -25,13 +25,12 @@ import Network.Socket.Internal
 ----------------------------------------------------------------------
 
 #include "network.h"
-#include "list.h"
 
-foreign import ccall unsafe "c_get_network_interfaces"
-        c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
+foreign import ccall unsafe "networkinfo_get_interfaces"
+    c_get_interfaces :: IO (Ptr NetworkInterface)
 
-foreign import ccall unsafe "list_free"
-  listFree :: Ptr () -> IO ()
+foreign import ccall unsafe "networkinfo_free_interfaces"
+    c_free_interfaces :: Ptr NetworkInterface -> IO ()
 
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 
@@ -43,39 +42,35 @@ foreign import ccall unsafe "list_free"
 -- | Describes the basic configuration of a network interface. /This/
 --   /definition is currently limited to just one address per family./
 data NetworkInterface = NetworkInterface
-    { name :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
+    { name      :: String -- ^ Interface name (e.g. \"eth0\", \"lo\", \"Local Area Connection\")
     , addresses :: [SockAddr]
-    , mac  :: MAC    -- ^ MAC address
+    , mac       :: MAC    -- ^ MAC address
     } deriving (Show)
-
-instance Storable NetworkInterface where
-    alignment _ = #alignment struct network_interface
-    sizeOf _    = #size struct network_interface
-    peek ptr    = do
-        name <- peekCWString $ (#ptr struct network_interface, name) ptr
-        addrListPtr <- (#peek struct network_interface, addresses) ptr
-        addrs <- crawlAddrList addrListPtr
-        mac  <- (#peek struct network_interface, mac_address) ptr
-        listFree addrListPtr
-        return $ NetworkInterface name addrs mac
-
-crawlAddrList :: Ptr () -> IO [SockAddr]
-crawlAddrList ptr | ptr == nullPtr = return []
-                  | otherwise = do
-    addr <- peekSockAddr =<< (#peek struct addr_list, payload) ptr
-    next <- (#peek struct addr_list, next) ptr
-    (addr :) `fmap` (crawlAddrList next)
-
-
-
 
 -- | Gets the address information for each of the network interfaces on
 --   the local computer.
 getNetworkInterfaces :: IO [NetworkInterface]
-getNetworkInterfaces =
-    allocaArray 64 $ \ptr -> do
-    count <- c_get_network_interfaces ptr 64
-    peekArray (fromIntegral count) ptr
+getNetworkInterfaces = do
+    ptr <- c_get_interfaces
+    interfaces <- peekNetworkInterfaces ptr
+    c_free_interfaces ptr
+    return interfaces
+
+peekNetworkInterfaces :: Ptr a -> IO [NetworkInterface]
+peekNetworkInterfaces ptr | ptr == nullPtr = return []
+                          | otherwise = do
+    next  <- (#peek struct network_interface, next) ptr
+    name  <- peekCWString $ (#ptr struct network_interface, name) ptr
+    addrs <- peekSockAddrs =<< (#peek struct network_interface, addresses) ptr
+    mac   <- (#peek struct network_interface, mac_address) ptr
+    (++ [NetworkInterface name addrs mac]) `fmap` (peekNetworkInterfaces next)
+
+peekSockAddrs :: Ptr a -> IO [SockAddr]
+peekSockAddrs ptr | ptr == nullPtr = return []
+                  | otherwise = do
+    next <- (#peek struct sockaddr_list, next) ptr
+    addr <- peekSockAddr $ (#ptr struct sockaddr_list, addr) ptr
+    (++ [addr]) `fmap` (peekSockAddrs next)
 
 ----------------------------------------------------------------------
 -- MAC addresses

@@ -1,30 +1,24 @@
-#ifndef _NETWORK_h
-#define _NETWORK_h
-
 #ifdef mingw32_HOST_OS
 #include <winsock2.h>
 #else
 #include <netinet/in.h>
 #endif
 
-#include <wchar.h>
-
 #define NAME_SIZE (128+4)
 #define MAC_SIZE 6
 
-struct addr_list {
-    struct addr_list* next;
-    struct sockaddr_storage* payload;
+struct sockaddr_list {
+    struct sockaddr_list *next;
+    struct sockaddr_storage addr;
 };
 
-
 struct network_interface {
+    struct network_interface *next;
     wchar_t name[NAME_SIZE];
-    struct addr_list *addresses;
+    struct sockaddr_list *addresses;
     unsigned char mac_address[MAC_SIZE];
 };
 
+struct network_interface* networkinfo_get_interfaces();
 
-int c_get_network_interfaces(struct network_interface *ns, int max_ns);
-
-#endif
+void networkinfo_free_interfaces(struct network_interface *ns);

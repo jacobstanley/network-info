@@ -8,23 +8,21 @@
 #include <iphlpapi.h>
 
 #include "network.h"
+
 #include "common.h"
-#include "list.h"
 
-
-int get_adapters_addresses(IP_ADAPTER_ADDRESSES *adapters, ULONG *size)
+static int get_adapters_addresses(IP_ADAPTER_ADDRESSES *adapters, ULONG *size)
 {
     return GetAdaptersAddresses(AF_UNSPEC, 0, 0, adapters, size);
 }
 
-int c_get_network_interfaces(struct network_interface *ns, int max_ns)
+struct network_interface* networkinfo_get_interfaces()
 {
-    struct sockaddr *addr;
     IP_ADAPTER_ADDRESSES *adapters, *adapter;
     IP_ADAPTER_UNICAST_ADDRESS *unicast;
     ULONG buffer_size;
     DWORD error;
-    int family, i;
+    struct network_interface *current;
 
     /* make an initial call to get the necessary
      * size into the buffer_size variable */
@@ -38,28 +36,25 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
 
     adapters = malloc(buffer_size);
     error = get_adapters_addresses(adapters, &buffer_size);
-    i = 0;
+    current = NULL;
 
     if (error == NO_ERROR) {
         adapter = adapters;
 
-        while (i < max_ns && adapter) {
-            wszcopy(ns[i].name, adapter->FriendlyName, NAME_SIZE);
-            memcpy(ns[i].mac_address, adapter->PhysicalAddress, MAC_SIZE);
+        while (adapter) {
+            prepend_empty(&current);
+
+            wszcopy(current->name, adapter->FriendlyName, NAME_SIZE);
+            memcpy(current->mac_address, adapter->PhysicalAddress, MAC_SIZE);
 
             for (unicast = adapter->FirstUnicastAddress; unicast; unicast = unicast->Next) {
-                addr = unicast->Address.lpSockaddr;
-                family = addr->sa_family;
-                if (family == AF_INET || family == AF_INET6 ) {
-                    prepend_address(&(ns[i].addresses), addr);
-                }
+                sockaddr_prepend(&(current->addresses), unicast->Address.lpSockaddr);
             }
 
-            i++;
             adapter = adapter->Next;
         }
     }
 
     free(adapters);
-    return i;
+    return current;
 }
