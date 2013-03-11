@@ -8,5 +8,6 @@ Executable network-info-test
   hs-source-dirs: src
   main-is: Main.hs
   build-depends:
-    base == 4.*
+      base == 4.*
+    , network
     , network-info
