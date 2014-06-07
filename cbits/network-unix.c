@@ -13,7 +13,9 @@
 #   include <sys/socket.h>
 #   include <net/if.h>
 #   include <net/if_dl.h>
-#   define AF_PACKET AF_LINK
+#   ifndef AF_PACKET
+#       define AF_PACKET AF_LINK
+#   endif
 #endif
 
 #ifdef __FreeBSD__
