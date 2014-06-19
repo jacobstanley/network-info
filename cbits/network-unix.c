@@ -12,8 +12,18 @@
 #else
 #   include <sys/socket.h>
 #   include <net/if.h>
-#   include <net/if_dl.h>
-#   define AF_PACKET AF_LINK
+#   ifndef __GNU__
+#      include <net/if_dl.h>
+#      ifndef __sun
+#         define AF_PACKET AF_LINK
+#      endif
+#   endif
+#   ifdef __sun
+#      include <net/if_arp.h>
+#      include <unistd.h>
+#      include <stropts.h>
+#      include <sys/sockio.h>
+#   endif
 #endif
 
 #ifdef __FreeBSD__
@@ -23,7 +33,30 @@
 #include "network.h"
 #include "common.h"
 
+#ifdef __sun
+int maccopy_arp(unsigned char *dst, struct sockaddr *addr)
+{
+    // SOURCE DERIVED FROM: http://www.pauliesworld.org/project/getmac.c
+    int sock;
+    if ((sock=socket(AF_INET,SOCK_DGRAM,0)) > -1) {
+        struct arpreq arpreq;
+        memset(&arpreq, 0, sizeof (struct arpreq));
+        arpreq.arp_pa = *addr;
+        if (ioctl(sock,SIOCGARP,(char*)&arpreq) == 0) {
+            close (sock);
+            memcpy(dst, (unsigned char *)arpreq.arp_ha.sa_data, MAC_SIZE);
+            return 0;
+        } else {
+            close (sock);
+            return 1;
+        }
+    } else {
+        return 1;
+    }
+}
+#endif
 
+#ifdef AF_PACKET
 void maccopy(unsigned char *dst, struct sockaddr *addr)
 {
 #ifdef __linux__
@@ -35,6 +68,7 @@ void maccopy(unsigned char *dst, struct sockaddr *addr)
     memcpy(dst, sdl->sdl_data + sdl->sdl_nlen, MAC_SIZE);
 #endif
 }
+#endif
 
 struct network_interface *add_interface(struct network_interface *ns, const wchar_t *name, int max_ns)
 {
@@ -96,10 +130,18 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
         family = addr->sa_family;
         if (family == AF_INET) {
             ipv4copy(&n->ip_address, addr);
+#ifdef __sun
+            maccopy_arp(n->mac_address, addr);
+#endif
         } else if (family == AF_INET6) {
             ipv6copy(&n->ip6_address, addr);
+#ifdef __sun
+            maccopy_arp(n->mac_address, addr);
+#endif
+#ifdef AF_PACKET
         } else if (family == AF_PACKET) {
             maccopy(n->mac_address, addr);
+#endif
         }
     }
 

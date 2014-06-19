@@ -50,3 +50,5 @@ Library
     extra-libraries: iphlpapi
   else
     c-sources: cbits/network-unix.c
+  if os(solaris)
+    extra-libraries: socket, nsl
