@@ -131,12 +131,16 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
         if (family == AF_INET) {
             ipv4copy(&n->ip_address, addr);
 #ifdef __sun
-            maccopy_arp(n->mac_address, addr);
+            if ((ifa->ifa_flags & IFF_LOOPBACK) == 0) {
+                maccopy_arp(n->mac_address, addr);
+            }
 #endif
         } else if (family == AF_INET6) {
             ipv6copy(&n->ip6_address, addr);
 #ifdef __sun
-            maccopy_arp(n->mac_address, addr);
+            if ((ifa->ifa_flags & IFF_LOOPBACK) == 0) {
+                maccopy_arp(n->mac_address, addr);
+            }
 #endif
 #ifdef AF_PACKET
         } else if (family == AF_PACKET) {
