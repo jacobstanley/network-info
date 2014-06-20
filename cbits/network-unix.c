@@ -33,7 +33,7 @@
 #include "network.h"
 #include "common.h"
 
-#ifdef __sun
+#if defined(__sun) || !defined(AF_PACKET)
 int maccopy_arp(unsigned char *dst, struct sockaddr *addr)
 {
     // SOURCE DERIVED FROM: http://www.pauliesworld.org/project/getmac.c
@@ -130,14 +130,14 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
         family = addr->sa_family;
         if (family == AF_INET) {
             ipv4copy(&n->ip_address, addr);
-#ifdef __sun
+#if defined(__sun) || !defined(AF_PACKET)
             if ((ifa->ifa_flags & IFF_LOOPBACK) == 0) {
                 maccopy_arp(n->mac_address, addr);
             }
 #endif
         } else if (family == AF_INET6) {
             ipv6copy(&n->ip6_address, addr);
-#ifdef __sun
+#if defined(__sun) || !defined(AF_PACKET)
             if ((ifa->ifa_flags & IFF_LOOPBACK) == 0) {
                 maccopy_arp(n->mac_address, addr);
             }
