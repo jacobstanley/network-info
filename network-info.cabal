@@ -38,7 +38,7 @@ source-repository head
 Library
   hs-source-dirs: src
   include-dirs: cbits
-  cc-options: -Wall -Werror
+  cc-options: -Wall
 
   exposed-modules: Network.Info
 
