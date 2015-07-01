@@ -30,6 +30,10 @@
 #   include <net/pfvar.h>
 #endif
 
+#ifdef __DragonFly__
+#   include <net/pf/pfvar.h>
+#endif
+
 #include "network.h"
 #include "common.h"
 
