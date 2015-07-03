@@ -1,5 +1,5 @@
 name:           network-info
-version:        0.2.0.6
+version:        0.2.0.7
 synopsis:       Access the local computer's basic network configuration
 
 description:    This library provides simple read-only access to the
