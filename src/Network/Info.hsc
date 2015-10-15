@@ -29,8 +29,6 @@ import Text.Printf
 foreign import ccall unsafe "c_get_network_interfaces"
         c_get_network_interfaces :: Ptr NetworkInterface -> CInt -> IO CInt
 
-#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
-
 
 ----------------------------------------------------------------------
 -- Network interfaces
@@ -46,7 +44,7 @@ data NetworkInterface = NetworkInterface
     } deriving (Show)
 
 instance Storable NetworkInterface where
-    alignment _ = #alignment struct network_interface
+    alignment _ = #const offsetof(struct {char x__; struct network_interface (y__); }, y__)
     sizeOf _    = #size struct network_interface
     peek ptr    = do
         name <- peekCWString $ (#ptr struct network_interface, name) ptr
