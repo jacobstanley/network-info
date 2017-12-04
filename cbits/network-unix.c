@@ -29,7 +29,7 @@
 #endif
 
 #ifdef __FreeBSD__
-#   include <net/pfvar.h>
+#   include <netinet/in.h>
 #endif
 
 #ifdef __DragonFly__
