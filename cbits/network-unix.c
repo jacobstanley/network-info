@@ -33,7 +33,7 @@
 #endif
 
 #ifdef __DragonFly__
-#   include <net/pf/pfvar.h>
+#   include <netinet/in.h>
 #endif
 
 #include "network.h"
