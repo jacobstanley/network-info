@@ -30,7 +30,8 @@ extra-source-files:
   test/network-info-test.cabal,
   test/run-tests.bat,
   test/run-tests.sh,
-  README.mkd
+  README.mkd,
+  CHANGELOG.md
 
 source-repository head
   type:     git
