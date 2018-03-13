@@ -24,6 +24,7 @@ cabal-version:  >= 1.6
 
 extra-source-files:
   cbits/common.h,
+  cbits/common.inc,
   cbits/network.h,
   test/src/Main.hs,
   test/network-info-test.cabal,
@@ -38,7 +39,7 @@ source-repository head
 Library
   hs-source-dirs: src
   include-dirs: cbits
-  cc-options: -Wall
+  cc-options: -Wall -std=c99
 
   exposed-modules: Network.Info
 
