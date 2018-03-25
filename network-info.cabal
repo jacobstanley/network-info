@@ -1,5 +1,5 @@
 name:           network-info
-version:        0.2.0.9
+version:        0.2.0.10
 synopsis:       Access the local computer's basic network configuration
 
 description:    This library provides simple read-only access to the
@@ -21,15 +21,18 @@ maintainer:     Jacob Stanley <jacob@stanley.io>
 category:       Network
 build-type:     Simple
 cabal-version:  >= 1.6
+tested-with:    GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1
 
 extra-source-files:
   cbits/common.h,
+  cbits/common.inc,
   cbits/network.h,
   test/src/Main.hs,
   test/network-info-test.cabal,
   test/run-tests.bat,
   test/run-tests.sh,
-  README.mkd
+  README.mkd,
+  CHANGELOG.md
 
 source-repository head
   type:     git
@@ -38,7 +41,7 @@ source-repository head
 Library
   hs-source-dirs: src
   include-dirs: cbits
-  cc-options: -Wall
+  cc-options: -Wall -std=c99
 
   exposed-modules: Network.Info
 

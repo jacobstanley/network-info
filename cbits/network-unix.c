@@ -158,3 +158,5 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
     freeifaddrs(ifaddr);
     return count_interfaces(ns, max_ns);
 }
+
+#include "common.inc"

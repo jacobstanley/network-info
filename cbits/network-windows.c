@@ -65,3 +65,5 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
     free(adapters);
     return i;
 }
+
+#include "common.inc"
