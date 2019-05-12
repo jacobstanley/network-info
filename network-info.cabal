@@ -13,7 +13,7 @@ description:    This library provides simple read-only access to the
                 XP/7. It probably works on other flavours of Linux,
                 OS X, FreeBSD and Windows as well.
 
-homepage:       http://github.com/jystic/network-info
+homepage:       http://github.com/jacobstanley/network-info
 license:        BSD3
 license-file:   LICENSE
 author:         Jacob Stanley
@@ -36,7 +36,7 @@ extra-source-files:
 
 source-repository head
   type:     git
-  location: git://github.com/jystic/network-info.git
+  location: git://github.com/jacobstanley/network-info.git
 
 Library
   hs-source-dirs: src
