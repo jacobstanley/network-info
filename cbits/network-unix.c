@@ -132,6 +132,9 @@ int c_get_network_interfaces(struct network_interface *ns, int max_ns)
         /* lookup or add a new interface with the given name */
         n = add_interface(ns, name, max_ns);
 
+        if (n == NULL)
+            break;
+
         /* extract the address from this item */
         family = addr->sa_family;
         if (family == AF_INET) {
