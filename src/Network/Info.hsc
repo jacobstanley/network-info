@@ -58,8 +58,8 @@ instance Storable NetworkInterface where
 --   the local computer.
 getNetworkInterfaces :: IO [NetworkInterface]
 getNetworkInterfaces =
-    allocaArray 64 $ \ptr -> do
-    count <- c_get_network_interfaces ptr 64
+    allocaArray 128 $ \ptr -> do
+    count <- c_get_network_interfaces ptr 128
     peekArray (fromIntegral count) ptr
 
 
