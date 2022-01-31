@@ -1,5 +1,5 @@
 name:           network-info
-version:        0.2.0.10
+version:        0.2.1
 synopsis:       Access the local computer's basic network configuration
 
 description:    This library provides simple read-only access to the
@@ -9,9 +9,7 @@ description:    This library provides simple read-only access to the
                 addresses.
                 .
                 network-info has been tested and is known to work on
-                Ubuntu 10.10, FreeBSD 9.0, Mac OS X 10.6.4 and Windows
-                XP/7. It probably works on other flavours of Linux,
-                OS X, FreeBSD and Windows as well.
+                Ubuntu, FreeBSD, NetBSD, Mac OS and Windows.
 
 homepage:       http://github.com/jacobstanley/network-info
 license:        BSD3
@@ -20,8 +18,13 @@ author:         Jacob Stanley
 maintainer:     Jacob Stanley <jacob@stanley.io>
 category:       Network
 build-type:     Simple
-cabal-version:  >= 1.6
-tested-with:    GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1
+cabal-version:  >= 1.10
+
+tested-with:
+  GHC == 8.8.4,
+  GHC == 8.10.7,
+  GHC == 9.0.1,
+  GHC == 9.2.1
 
 extra-source-files:
   cbits/common.h,
@@ -38,7 +41,8 @@ source-repository head
   type:     git
   location: git://github.com/jacobstanley/network-info.git
 
-Library
+library
+  default-language: Haskell2010
   hs-source-dirs: src
   include-dirs: cbits
   cc-options: -Wall -std=c99
